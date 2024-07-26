@@ -4,7 +4,7 @@ import pandas as pd
 
 class ASDPredictor:
     def __init__(self, model_path, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, Age_Years, Ethnicity, Jaundice,
-                 Family_mem_with_ASD, country_of_res, used_app_before, Q10_Result, Who_completed_the_test, Gender_en):
+                 Family_mem_with_ASD, country_of_res, used_app_before, Who_completed_the_test, Gender_en):
         # Carregar o modelo treinado
         with open(model_path, 'rb') as file:
             self.best_model = pickle.load(file)
@@ -26,7 +26,7 @@ class ASDPredictor:
         self.Family_mem_with_ASD = Family_mem_with_ASD
         self.country_of_res = country_of_res
         self.used_app_before = used_app_before
-        self.Q10_Result = Q10_Result
+        self.Q10_Result = self.A1 + self.A2 + self.A3 + self.A4 + self.A5 + self.A6 + self.A7 + self.A8 + self.A9 + self.A10
         self.Who_completed_the_test = Who_completed_the_test
         self.Gender_en = Gender_en
 
@@ -92,7 +92,6 @@ predictor = ASDPredictor(
     Family_mem_with_ASD=0,
     country_of_res=0.068493,
     used_app_before=0,
-    Q10_Result=5,
     Who_completed_the_test=0.732877,
     Gender_en=1.0
 )
