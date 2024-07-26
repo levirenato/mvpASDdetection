@@ -96,7 +96,3 @@ predictor = ASDPredictor(
     Who_completed_the_test=0.732877,
     Gender_en=1.0
 )
-
-# Realizar a previsão
-predictor.print_prediction()
-print(predictor.country_of_res)
