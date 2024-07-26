@@ -82,3 +82,5 @@ questions = {
     "A9": "Seu filho usa gestos simples? (por exemplo, acenar para se despedir)",
     "A10": "Seu filho olha para o nada sem um propósito aparente?"
 }
+
+options = ["Sempre", "Normalmente", "Às vezes", "Raramente", "Nunca"]

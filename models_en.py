@@ -82,3 +82,5 @@ questions = {
     "A9": "Does your child use simple gestures? (e.g. wave goodbye)",
     "A10": "Does your child stare at nothing with no apparent purpose?"
 }
+
+options = ["Always", "Usually", "Sometimes", "Rarely", "Never"]

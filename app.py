@@ -1,6 +1,8 @@
 import streamlit as st
-from models_pt import country_of_res as country_pt, who_completed_the_test as who_test_pt, ethnicity as ethnicity_pt, questions as question_pt
-from models_en import country_of_res as country_en, who_completed_the_test as who_test_en, ethnicity as ethnicity_en, questions as question_en
+from models_pt import country_of_res as country_pt, who_completed_the_test as who_test_pt, ethnicity as ethnicity_pt, \
+    questions as question_pt, options as options_pt
+from models_en import country_of_res as country_en, who_completed_the_test as who_test_en, ethnicity as ethnicity_en, \
+    questions as question_en, options as options_en
 
 
 # Definir uma função para alternar entre português e inglês
@@ -12,7 +14,8 @@ def get_dictionaries(language):
 
 
 # Botão de alternância de idioma
-language = st.radio("Escolha o idioma / Choose the language", ('pt', 'en'), horizontal=True)
+st.write("#### Escolha o idioma / Choose the language")
+language = st.radio(label="### Escolha o idioma / Choose the language",options=('pt', 'en'), horizontal=True, label_visibility="hidden")
 
 # Definir a interface do usuário
 st.title("Previsão de TEA" if language == "pt" else "ASD Prediction")
@@ -74,11 +77,64 @@ with st.form("prediction_form"):
             key="family_mem_with_asd"
         )
 
-    tab1, tab2, tab3 = st.tabs(["Cat", "Dog", "Owl"])
+    st.html("<br/>")
+    st.subheader("Perguntas" if language == "pt" else "Questions")
+
+
+    # Questions
+    def map_response(question, response):
+        if question in ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9"]:
+            return 1 if response in ["Às vezes", "Raramente", "Nunca", "Sometimes", "Rarely", "Never"] else 0
+        elif question == "A10":
+            return 1 if response in ["Sempre", "Normalmente", "Às vezes", "Always", "Usually", "Sometimes"] else 0
+
+
+    if language == "pt":
+        options = options_pt
+    else:
+        options = options_en
+
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([i for i in question_dict.keys()])
 
     with tab1:
-        st.header("A cat")
-        st.image("https://static.streamlit.io/examples/cat.jpg", width=200)
+        A1 = map_response("A1", st.radio(label=f"#### {question_dict.get('A1')}", options=options, horizontal=True, key="A1",
+                                         ))
+
+    with tab2:
+        A2 = map_response("A2", st.radio(label=f"#### {question_dict.get('A2')}", options=options, horizontal=True, key="A2",
+                                         ))
+
+    with tab3:
+        A3 = map_response("A3", st.radio(label=f"#### {question_dict.get('A3')}", options=options, horizontal=True, key="A3",
+                                         ))
+
+    with tab4:
+        A4 = map_response("A4", st.radio(label=f"#### {question_dict.get('A4')}", options=options, horizontal=True, key="A4",
+                                         ))
+
+    with tab5:
+        A5 = map_response("A5", st.radio(label=f"#### {question_dict.get('A5')}", options=options, horizontal=True, key="A5",
+                                         ))
+
+    with tab6:
+        A6 = map_response("A6", st.radio(label=f"#### {question_dict.get('A6')}", options=options, horizontal=True, key="A6",
+                                         ))
+
+    with tab7:
+        A7 = map_response("A7", st.radio(label=F"#### {question_dict.get('A7')}", options=options, horizontal=True, key="A7",
+                                         ))
+
+    with tab8:
+        A8 = map_response("A8", st.radio(label=f"#### {question_dict.get('A8')}", options=options, horizontal=True, key="A8",
+                                         ))
+
+    with tab9:
+        A9 = map_response("A9", st.radio(label=f"#### {question_dict.get('A9')}", options=options, horizontal=True, key="A9",
+                                         ))
+
+    with tab10:
+        A10 = map_response("A10", st.radio(label=f"#### {question_dict.get('A10')}", options=options, horizontal=True, key="A10",
+                                           ))
 
     # Botão de submissão
     submitted = st.form_submit_button("Enviar" if language == "pt" else "Submit")
@@ -92,5 +148,15 @@ if submitted:
         "country_of_res": country_dict.get(country),
         "used_app_before": used_app_before,
         "Who_completed_the_test": who_test_dict.get(who_completed),
-        "Gender_en": gender
+        "Gender_en": gender,
+        "A1": A1,
+        "A2": A2,
+        "A3": A3,
+        "A4": A4,
+        "A5": A5,
+        "A6": A6,
+        "A7": A7,
+        "A8": A8,
+        "A9": A9,
+        "A10": A10,
     })
