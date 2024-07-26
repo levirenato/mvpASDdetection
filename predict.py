@@ -3,10 +3,10 @@ import pandas as pd
 
 
 class ASDPredictor:
-    def __init__(self, model_path, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, Age_Years, Ethnicity, Jaundice,
+    def __init__(self, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, Age_Years, Ethnicity, Jaundice,
                  Family_mem_with_ASD, country_of_res, used_app_before, Who_completed_the_test, Gender_en):
         # Carregar o modelo treinado
-        with open(model_path, 'rb') as file:
+        with open("best_model.pkl", 'rb') as file:
             self.best_model = pickle.load(file)
 
         # Inicializar as propriedades
@@ -75,7 +75,6 @@ class ASDPredictor:
 
 # Exemplo de uso da classe ASDPredictor
 predictor = ASDPredictor(
-    model_path='best_model.pkl',
     A1=1,
     A2=1,
     A3=0,
