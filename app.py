@@ -27,6 +27,54 @@ st.title("Previsão de TEA" if language == "pt" else "ASD Prediction")
 # Obter os dicionários corretos com base no idioma selecionado
 country_dict, who_test_dict, ethnicity_dict, question_dict = get_dictionaries(language)
 
+# Inicializar o estado do Streamlit para armazenar os resultados
+if 'results' not in st.session_state:
+    st.session_state['results'] = []
+
+# Mapear traduções das colunas
+columns_mapping = {
+    'pt': {
+        "Age_Years": "Idade (em anos)",
+        "Ethnicity": "Etnia",
+        "Jaundice": "Icterícia",
+        "Family_mem_with_ASD": "Membro da família com TEA",
+        "country_of_res": "País de residência",
+        "used_app_before": "Usou o aplicativo antes",
+        "Who_completed_the_test": "Quem completou o teste",
+        "Gender_en": "Gênero",
+        "A1": "A1",
+        "A2": "A2",
+        "A3": "A3",
+        "A4": "A4",
+        "A5": "A5",
+        "A6": "A6",
+        "A7": "A7",
+        "A8": "A8",
+        "A9": "A9",
+        "A10": "A10",
+    },
+    'en': {
+        "Age_Years": "Age (in years)",
+        "Ethnicity": "Ethnicity",
+        "Jaundice": "Jaundice",
+        "Family_mem_with_ASD": "Family member with ASD",
+        "country_of_res": "Country of residence",
+        "used_app_before": "Used the app before",
+        "Who_completed_the_test": "Who completed the test",
+        "Gender_en": "Gender",
+        "A1": "A1",
+        "A2": "A2",
+        "A3": "A3",
+        "A4": "A4",
+        "A5": "A5",
+        "A6": "A6",
+        "A7": "A7",
+        "A8": "A8",
+        "A9": "A9",
+        "A10": "A10",
+    }
+}
+
 # Formulário para entrada de dados
 with st.form("prediction_form"):
     st.subheader("Dados do paciente" if language == "pt" else "Patient information")
@@ -153,27 +201,29 @@ with st.form("prediction_form"):
     st.divider()
     # Botão de submissão
     submitted = st.form_submit_button("Enviar" if language == "pt" else "Submit")
+
 if submitted:
     df = {
         "Age_Years": age_years,
         "Ethnicity": ethnicity,
-        "Jaundice": jaundice,
-        "Family_mem_with_ASD": family_mem_with_asd,
+        "Jaundice": "Sim" if jaundice == 1 and language == "pt" else "Yes" if jaundice == 1 else "Não" if jaundice == 0 and language == "pt" else "No",
+        "Family_mem_with_ASD": "Sim" if family_mem_with_asd == 1 and language == "pt" else "Yes" if family_mem_with_asd == 1 else "Não" if family_mem_with_asd == 0 and language == "pt" else "No",
         "country_of_res": country,
-        "used_app_before": used_app_before,
+        "used_app_before": "Sim" if used_app_before == 1 and language == "pt" else "Yes" if used_app_before == 1 else "Não" if used_app_before == 0 and language == "pt" else "No",
         "Who_completed_the_test": who_completed,
-        "Gender_en": gender,
-        "A1": A1,
-        "A2": A2,
-        "A3": A3,
-        "A4": A4,
-        "A5": A5,
-        "A6": A6,
-        "A7": A7,
-        "A8": A8,
-        "A9": A9,
-        "A10": A10,
+        "Gender_en": "Feminino" if gender == 0 and language == "pt" else "Female" if gender == 0 else "Masculino" if gender == 1 and language == "pt" else "Male",
+        "A1": "Sim" if A1 == 1 and language == "pt" else "Yes" if A1 == 1 else "Não" if A1 == 0 and language == "pt" else "No",
+        "A2": "Sim" if A2 == 1 and language == "pt" else "Yes" if A2 == 1 else "Não" if A2 == 0 and language == "pt" else "No",
+        "A3": "Sim" if A3 == 1 and language == "pt" else "Yes" if A3 == 1 else "Não" if A3 == 0 and language == "pt" else "No",
+        "A4": "Sim" if A4 == 1 and language == "pt" else "Yes" if A4 == 1 else "Não" if A4 == 0 and language == "pt" else "No",
+        "A5": "Sim" if A5 == 1 and language == "pt" else "Yes" if A5 == 1 else "Não" if A5 == 0 and language == "pt" else "No",
+        "A6": "Sim" if A6 == 1 and language == "pt" else "Yes" if A6 == 1 else "Não" if A6 == 0 and language == "pt" else "No",
+        "A7": "Sim" if A7 == 1 and language == "pt" else "Yes" if A7 == 1 else "Não" if A7 == 0 and language == "pt" else "No",
+        "A8": "Sim" if A8 == 1 and language == "pt" else "Yes" if A8 == 1 else "Não" if A8 == 0 and language == "pt" else "No",
+        "A9": "Sim" if A9 == 1 and language == "pt" else "Yes" if A9 == 1 else "Não" if A9 == 0 and language == "pt" else "No",
+        "A10": "Sim" if A10 == 1 and language == "pt" else "Yes" if A10 == 1 else "Não" if A10 == 0 and language == "pt" else "No",
     }
+
     predict = ASDPredictor(
         Age_Years=age_years,
         Ethnicity=ethnicity_dict.get(ethnicity),
@@ -196,12 +246,12 @@ if submitted:
     )
 
     if language == "pt":
-        result = st.write(f"## {'Diagnóstico: :green[Positivo]' if predict.print_prediction() == 1 else 'Diagnóstico: :red[Negativo]'}")
+        st.write(f"## {'Diagnóstico: :green[Positivo]' if predict.print_prediction() == 1 else 'Diagnóstico: :red[Negativo]'}")
     elif language == "en":
-        result = st.write(f"## {'Diagnosis:  :green[Positive]' if predict.print_prediction() == 1 else 'Diagnosis:  :red[negative]'}")
+        st.write(f"## {'Diagnosis:  :green[Positive]' if predict.print_prediction() == 1 else 'Diagnosis:  :red[Negative]'}")
 
-    df_t = pd.DataFrame(columns=[i for i in df.keys()],index=None)
-    new = df_t._append(df, ignore_index=True)
+    st.session_state['results'].append(df)
 
-    st.dataframe(new)
-    print(df.keys())
+    df_t = pd.DataFrame(st.session_state['results'])
+    df_t.columns = [columns_mapping[language][col] for col in df_t.columns]
+    st.dataframe(df_t)
