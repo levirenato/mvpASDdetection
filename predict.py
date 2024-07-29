@@ -69,8 +69,7 @@ class ASDPredictor:
         return prediction[0]
 
     def print_prediction(self):
-        resultado = self.predict_asd()
-        print(f'A previsão é: {resultado}')
+        return self.predict_asd()
 
 
 # Exemplo de uso da classe ASDPredictor

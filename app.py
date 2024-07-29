@@ -4,6 +4,9 @@ from models_pt import country_of_res as country_pt, who_completed_the_test as wh
 from models_en import country_of_res as country_en, who_completed_the_test as who_test_en, ethnicity as ethnicity_en, \
     questions as question_en, options as options_en
 
+from predict import ASDPredictor
+import pandas as pd
+
 
 # Definir uma função para alternar entre português e inglês
 def get_dictionaries(language):
@@ -15,7 +18,8 @@ def get_dictionaries(language):
 
 # Botão de alternância de idioma
 st.write("#### Escolha o idioma / Choose the language")
-language = st.radio(label="### Escolha o idioma / Choose the language",options=('pt', 'en'), horizontal=True, label_visibility="hidden")
+language = st.radio(label="### Escolha o idioma / Choose the language", options=('pt', 'en'), horizontal=True,
+                    label_visibility="hidden")
 
 # Definir a interface do usuário
 st.title("Previsão de TEA" if language == "pt" else "ASD Prediction")
@@ -97,57 +101,67 @@ with st.form("prediction_form"):
     tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([i for i in question_dict.keys()])
 
     with tab1:
-        A1 = map_response("A1", st.radio(label=f"#### {question_dict.get('A1')}", options=options, horizontal=True, key="A1",
-                                         ))
+        A1 = map_response("A1",
+                          st.radio(label=f"#### {question_dict.get('A1')}", options=options, horizontal=True, key="A1",
+                                   ))
 
     with tab2:
-        A2 = map_response("A2", st.radio(label=f"#### {question_dict.get('A2')}", options=options, horizontal=True, key="A2",
-                                         ))
+        A2 = map_response("A2",
+                          st.radio(label=f"#### {question_dict.get('A2')}", options=options, horizontal=True, key="A2",
+                                   ))
 
     with tab3:
-        A3 = map_response("A3", st.radio(label=f"#### {question_dict.get('A3')}", options=options, horizontal=True, key="A3",
-                                         ))
+        A3 = map_response("A3",
+                          st.radio(label=f"#### {question_dict.get('A3')}", options=options, horizontal=True, key="A3",
+                                   ))
 
     with tab4:
-        A4 = map_response("A4", st.radio(label=f"#### {question_dict.get('A4')}", options=options, horizontal=True, key="A4",
-                                         ))
+        A4 = map_response("A4",
+                          st.radio(label=f"#### {question_dict.get('A4')}", options=options, horizontal=True, key="A4",
+                                   ))
 
     with tab5:
-        A5 = map_response("A5", st.radio(label=f"#### {question_dict.get('A5')}", options=options, horizontal=True, key="A5",
-                                         ))
+        A5 = map_response("A5",
+                          st.radio(label=f"#### {question_dict.get('A5')}", options=options, horizontal=True, key="A5",
+                                   ))
 
     with tab6:
-        A6 = map_response("A6", st.radio(label=f"#### {question_dict.get('A6')}", options=options, horizontal=True, key="A6",
-                                         ))
+        A6 = map_response("A6",
+                          st.radio(label=f"#### {question_dict.get('A6')}", options=options, horizontal=True, key="A6",
+                                   ))
 
     with tab7:
-        A7 = map_response("A7", st.radio(label=F"#### {question_dict.get('A7')}", options=options, horizontal=True, key="A7",
-                                         ))
+        A7 = map_response("A7",
+                          st.radio(label=F"#### {question_dict.get('A7')}", options=options, horizontal=True, key="A7",
+                                   ))
 
     with tab8:
-        A8 = map_response("A8", st.radio(label=f"#### {question_dict.get('A8')}", options=options, horizontal=True, key="A8",
-                                         ))
+        A8 = map_response("A8",
+                          st.radio(label=f"#### {question_dict.get('A8')}", options=options, horizontal=True, key="A8",
+                                   ))
 
     with tab9:
-        A9 = map_response("A9", st.radio(label=f"#### {question_dict.get('A9')}", options=options, horizontal=True, key="A9",
-                                         ))
+        A9 = map_response("A9",
+                          st.radio(label=f"#### {question_dict.get('A9')}", options=options, horizontal=True, key="A9",
+                                   ))
 
     with tab10:
-        A10 = map_response("A10", st.radio(label=f"#### {question_dict.get('A10')}", options=options, horizontal=True, key="A10",
+        A10 = map_response("A10", st.radio(label=f"#### {question_dict.get('A10')}", options=options, horizontal=True,
+                                           key="A10",
                                            ))
 
+    st.divider()
     # Botão de submissão
     submitted = st.form_submit_button("Enviar" if language == "pt" else "Submit")
-
 if submitted:
-    st.write({
+    df = {
         "Age_Years": age_years,
-        "Ethnicity": ethnicity_dict.get(ethnicity),
+        "Ethnicity": ethnicity,
         "Jaundice": jaundice,
         "Family_mem_with_ASD": family_mem_with_asd,
-        "country_of_res": country_dict.get(country),
+        "country_of_res": country,
         "used_app_before": used_app_before,
-        "Who_completed_the_test": who_test_dict.get(who_completed),
+        "Who_completed_the_test": who_completed,
         "Gender_en": gender,
         "A1": A1,
         "A2": A2,
@@ -159,4 +173,35 @@ if submitted:
         "A8": A8,
         "A9": A9,
         "A10": A10,
-    })
+    }
+    predict = ASDPredictor(
+        Age_Years=age_years,
+        Ethnicity=ethnicity_dict.get(ethnicity),
+        Jaundice=jaundice,
+        Family_mem_with_ASD=family_mem_with_asd,
+        country_of_res=country_dict.get(country),
+        used_app_before=used_app_before,
+        Who_completed_the_test=who_test_dict.get(who_completed),
+        Gender_en=gender,
+        A1=A1,
+        A2=A2,
+        A3=A3,
+        A4=A4,
+        A5=A5,
+        A6=A6,
+        A7=A7,
+        A8=A8,
+        A9=A9,
+        A10=A10,
+    )
+
+    if language == "pt":
+        result = st.write(f"## {'Diagnóstico: :green[Positivo]' if predict.print_prediction() == 1 else 'Diagnóstico: :red[Negativo]'}")
+    elif language == "en":
+        result = st.write(f"## {'Diagnosis:  :green[Positive]' if predict.print_prediction() == 1 else 'Diagnosis:  :red[negative]'}")
+
+    df_t = pd.DataFrame(columns=[i for i in df.keys()],index=None)
+    new = df_t._append(df, ignore_index=True)
+
+    st.dataframe(new)
+    print(df.keys())
