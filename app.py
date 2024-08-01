@@ -3,9 +3,48 @@ from models_pt import country_of_res as country_pt, who_completed_the_test as wh
     questions as question_pt, options as options_pt
 from models_en import country_of_res as country_en, who_completed_the_test as who_test_en, ethnicity as ethnicity_en, \
     questions as question_en, options as options_en
-
 from predict import ASDPredictor
 import pandas as pd
+import plotly.express as px
+
+# definir tema
+ms = st.session_state
+if "themes" not in ms:
+    ms.themes = {"current_theme": "light",
+                 "refreshed": True,
+
+                 "light": {"theme.base": "light",
+                           "theme.backgroundColor": "white",
+                           "theme.primaryColor": "#c98bdb",
+                           "button_face": "🌜"},
+
+                 "dark": {"theme.base": "dark",
+                          "theme.backgroundColor": "#31363F",
+                          "theme.primaryColor": "#5591f5",
+                          "button_face": "🌞"},
+                 }
+
+
+def ChangeTheme():
+    previous_theme = ms.themes["current_theme"]
+    tdict = ms.themes["light"] if ms.themes["current_theme"] == "light" else ms.themes["dark"]
+    for vkey, vval in tdict.items():
+        if vkey.startswith("theme"): st._config.set_option(vkey, vval)
+
+    ms.themes["refreshed"] = False
+    if previous_theme == "dark":
+        ms.themes["current_theme"] = "light"
+    elif previous_theme == "light":
+        ms.themes["current_theme"] = "dark"
+
+
+btn_face = ms.themes["light"]["button_face"] if ms.themes["current_theme"] == "light" else ms.themes["dark"][
+    "button_face"]
+st.button(btn_face, on_click=ChangeTheme)
+
+if not ms.themes["refreshed"]:
+    ms.themes["refreshed"] = True
+    st.rerun()
 
 
 # Definir uma função para alternar entre português e inglês
@@ -28,8 +67,10 @@ st.title("Previsão de TEA" if language == "pt" else "ASD Prediction")
 country_dict, who_test_dict, ethnicity_dict, question_dict = get_dictionaries(language)
 
 # Inicializar o estado do Streamlit para armazenar os resultados
-if 'results' not in st.session_state:
-    st.session_state['results'] = []
+if 'results_pt' not in st.session_state:
+    st.session_state['results_pt'] = []
+if 'results_en' not in st.session_state:
+    st.session_state['results_en'] = []
 
 # Mapear traduções das colunas
 columns_mapping = {
@@ -52,6 +93,7 @@ columns_mapping = {
         "A8": "A8",
         "A9": "A9",
         "A10": "A10",
+        "Resultado": "Resultado"
     },
     'en': {
         "Age_Years": "Age (in years)",
@@ -72,6 +114,7 @@ columns_mapping = {
         "A8": "A8",
         "A9": "A9",
         "A10": "A10",
+        "Resultado": "Result"
     }
 }
 
@@ -84,8 +127,7 @@ with st.form("prediction_form"):
             "Gênero" if language == "pt" else "Gender",
             options=[0, 1],
             format_func=lambda
-                x: "Feminino" if x == 0 and language == "pt" else "Female"
-            if x == 0 else "Masculino" if x == 1 and language == "pt" else "Male",
+                x: "Feminino" if x == 0 and language == "pt" else "Female" if x == 0 else "Masculino" if x == 1 and language == "pt" else "Male",
             horizontal=True,
             key="gender"
         )
@@ -180,7 +222,7 @@ with st.form("prediction_form"):
 
     with tab7:
         A7 = map_response("A7",
-                          st.radio(label=F"#### {question_dict.get('A7')}", options=options, horizontal=True, key="A7",
+                          st.radio(label=f"#### {question_dict.get('A7')}", options=options, horizontal=True, key="A7",
                                    ))
 
     with tab8:
@@ -203,27 +245,6 @@ with st.form("prediction_form"):
     submitted = st.form_submit_button("Enviar" if language == "pt" else "Submit")
 
 if submitted:
-    df = {
-        "Age_Years": age_years,
-        "Ethnicity": ethnicity,
-        "Jaundice": "Sim" if jaundice == 1 and language == "pt" else "Yes" if jaundice == 1 else "Não" if jaundice == 0 and language == "pt" else "No",
-        "Family_mem_with_ASD": "Sim" if family_mem_with_asd == 1 and language == "pt" else "Yes" if family_mem_with_asd == 1 else "Não" if family_mem_with_asd == 0 and language == "pt" else "No",
-        "country_of_res": country,
-        "used_app_before": "Sim" if used_app_before == 1 and language == "pt" else "Yes" if used_app_before == 1 else "Não" if used_app_before == 0 and language == "pt" else "No",
-        "Who_completed_the_test": who_completed,
-        "Gender_en": "Feminino" if gender == 0 and language == "pt" else "Female" if gender == 0 else "Masculino" if gender == 1 and language == "pt" else "Male",
-        "A1": "Sim" if A1 == 1 and language == "pt" else "Yes" if A1 == 1 else "Não" if A1 == 0 and language == "pt" else "No",
-        "A2": "Sim" if A2 == 1 and language == "pt" else "Yes" if A2 == 1 else "Não" if A2 == 0 and language == "pt" else "No",
-        "A3": "Sim" if A3 == 1 and language == "pt" else "Yes" if A3 == 1 else "Não" if A3 == 0 and language == "pt" else "No",
-        "A4": "Sim" if A4 == 1 and language == "pt" else "Yes" if A4 == 1 else "Não" if A4 == 0 and language == "pt" else "No",
-        "A5": "Sim" if A5 == 1 and language == "pt" else "Yes" if A5 == 1 else "Não" if A5 == 0 and language == "pt" else "No",
-        "A6": "Sim" if A6 == 1 and language == "pt" else "Yes" if A6 == 1 else "Não" if A6 == 0 and language == "pt" else "No",
-        "A7": "Sim" if A7 == 1 and language == "pt" else "Yes" if A7 == 1 else "Não" if A7 == 0 and language == "pt" else "No",
-        "A8": "Sim" if A8 == 1 and language == "pt" else "Yes" if A8 == 1 else "Não" if A8 == 0 and language == "pt" else "No",
-        "A9": "Sim" if A9 == 1 and language == "pt" else "Yes" if A9 == 1 else "Não" if A9 == 0 and language == "pt" else "No",
-        "A10": "Sim" if A10 == 1 and language == "pt" else "Yes" if A10 == 1 else "Não" if A10 == 0 and language == "pt" else "No",
-    }
-
     predict = ASDPredictor(
         Age_Years=age_years,
         Ethnicity=ethnicity_dict.get(ethnicity),
@@ -244,14 +265,88 @@ if submitted:
         A9=A9,
         A10=A10,
     )
+    result = predict.print_prediction()
+    result_text = 'Positivo' if result == 1 else 'Negativo'
 
-    if language == "pt":
-        st.write(f"## {'Diagnóstico: :green[Positivo]' if predict.print_prediction() == 1 else 'Diagnóstico: :red[Negativo]'}")
-    elif language == "en":
-        st.write(f"## {'Diagnosis:  :green[Positive]' if predict.print_prediction() == 1 else 'Diagnosis:  :red[Negative]'}")
+    # Dados para DataFrame
+    data = {
+        "Age_Years": age_years,
+        "Ethnicity": ethnicity,
+        "Jaundice": "Sim" if jaundice == 1 and language == "pt" else "Yes" if jaundice == 1 else "Não" if jaundice == 0 and language == "pt" else "No",
+        "Family_mem_with_ASD": "Sim" if family_mem_with_asd == 1 and language == "pt" else "Yes" if family_mem_with_asd == 1 else "Não" if family_mem_with_asd == 0 and language == "pt" else "No",
+        "country_of_res": country,
+        "used_app_before": "Sim" if used_app_before == 1 and language == "pt" else "Yes" if used_app_before == 1 else "Não" if used_app_before == 0 and language == "pt" else "No",
+        "Who_completed_the_test": who_completed,
+        "Gender_en": "Feminino" if gender == 0 and language == "pt" else "Female" if gender == 0 else "Masculino" if gender == 1 and language == "pt" else "Male",
+        "A1": "Sim" if A1 == 1 and language == "pt" else "Yes" if A1 == 1 else "Não" if A1 == 0 and language == "pt" else "No",
+        "A2": "Sim" if A2 == 1 and language == "pt" else "Yes" if A2 == 1 else "Não" if A2 == 0 and language == "pt" else "No",
+        "A3": "Sim" if A3 == 1 and language == "pt" else "Yes" if A3 == 1 else "Não" if A3 == 0 and language == "pt" else "No",
+        "A4": "Sim" if A4 == 1 and language == "pt" else "Yes" if A4 == 1 else "Não" if A4 == 0 and language == "pt" else "No",
+        "A5": "Sim" if A5 == 1 and language == "pt" else "Yes" if A5 == 1 else "Não" if A5 == 0 and language == "pt" else "No",
+        "A6": "Sim" if A6 == 1 and language == "pt" else "Yes" if A6 == 1 else "Não" if A6 == 0 and language == "pt" else "No",
+        "A7": "Sim" if A7 == 1 and language == "pt" else "Yes" if A7 == 1 else "Não" if A7 == 0 and language == "pt" else "No",
+        "A8": "Sim" if A8 == 1 and language == "pt" else "Yes" if A8 == 1 else "Não" if A8 == 0 and language == "pt" else "No",
+        "A9": "Sim" if A9 == 1 and language == "pt" else "Yes" if A9 == 1 else "Não" if A9 == 0 and language == "pt" else "No",
+        "A10": "Sim" if A10 == 1 and language == "pt" else "Yes" if A10 == 1 else "Não" if A10 == 0 and language == "pt" else "No",
+        "Resultado": result_text
+    }
 
-    st.session_state['results'].append(df)
+    # Atualiza os DataFrames
+    st.session_state['results_pt'].append(data)
+    st.session_state['results_en'].append(data)
 
-    df_t = pd.DataFrame(st.session_state['results'])
+    # Exibir o DataFrame
+    df_t = pd.DataFrame(st.session_state['results_pt'] if language == 'pt' else st.session_state['results_en'])
     df_t.columns = [columns_mapping[language][col] for col in df_t.columns]
     st.dataframe(df_t)
+
+    # Gráficos
+    st.subheader("Visualizações")
+
+    # Gráfico de Idades Colorido
+    fig_age = px.histogram(
+        df_t,
+        x="Idade (em anos)" if language == 'pt' else "Age (in years)",
+        nbins=10,
+        title="Distribuição das Idades",
+        color="Resultado" if language == 'pt' else "Result",  # Adiciona cor com base na coluna de resultado
+        color_discrete_map={"Positivo": "red", "Negativo": "blue"}  # Mapeia cores específicas para os resultados
+    )
+    fig_age.update_layout(
+        xaxis_title="Idade (em anos)" if language == 'pt' else "Age (in years)",
+        yaxis_title="Número de Pacientes",
+        legend_title="Resultado" if language == 'pt' else "Result"
+    )
+
+    st.plotly_chart(fig_age)
+
+    # Gráfico de Gênero
+    fig_gender = px.pie(df_t, names="Resultado" if language == 'pt' else "Result", title="Distribuição por Gênero")
+    st.plotly_chart(fig_gender)
+
+    # Gráfico de Resultados
+    fig_result = px.pie(df_t, names="Resultado" if language == 'pt' else "Result", title="Distribuição dos Resultados")
+    st.plotly_chart(fig_result)
+
+    # Gráfico de Idade x Resultado como Dispersão
+    fig_age_result = px.scatter(
+        df_t,
+        x="Idade (em anos)" if language == 'pt' else "Age (in years)",
+        y="Resultado" if language == 'pt' else "Result",
+        color="Resultado" if language == 'pt' else "Result",  # Adiciona cores baseadas na coluna Resultado
+        title="Distribuição da Idade por Resultado",
+        color_discrete_map={"Positivo": "red", "Negativo": "blue"}  # Mapeia cores específicas para os resultados
+    )
+
+    # Ajustes de Layout
+    fig_age_result.update_layout(
+        xaxis_title="Idade (em anos)" if language == 'pt' else "Age (in years)",
+        yaxis_title="Resultado" if language == 'pt' else "Result",
+        legend_title="Resultado" if language == 'pt' else "Result"
+    )
+
+    st.plotly_chart(fig_age_result)
+
+    # Gráfico de Etnia
+    fig_ethnicity = px.pie(df_t, names="Etnia" if language == 'pt' else "Ethnicity", title="Distribuição por Etnia")
+    st.plotly_chart(fig_ethnicity)
